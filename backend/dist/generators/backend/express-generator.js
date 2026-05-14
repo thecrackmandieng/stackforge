@@ -20,6 +20,7 @@ DB_PORT=${port}
 DB_USER=root
 DB_PASSWORD=
 DB_DATABASE=${schema.database}
+DB_SSL=false
 
 # OTP email via SMTP
 SMTP_HOST=
@@ -66,6 +67,7 @@ export const pool = mysql.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
   waitForConnections: true,
   connectionLimit: 10
 });
@@ -84,7 +86,8 @@ export const pool = new pg.Pool({
   port: Number(process.env.DB_PORT || 5432),
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE
+  database: process.env.DB_DATABASE,
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
 });
 
 export async function query(sql, params = []) {
@@ -95,9 +98,10 @@ export async function query(sql, params = []) {
 }
 function serviceFile(schema, table) {
     const tableName = (0, naming_1.quoteJs)(table.name);
-    const columns = table.columns.map((column) => column.name);
-    const editableColumns = table.editableColumns.map((column) => column.name);
+    const columns = table.columns.map((column) => ({ name: column.name, propertyName: column.propertyName }));
+    const editableColumns = table.editableColumns.map((column) => ({ name: column.name, propertyName: column.propertyName }));
     const primaryKey = table.primaryKey.name;
+    const primaryKeyProperty = table.primaryKey.propertyName;
     if (schema.provider === 'mysql') {
         return `
 import { query } from '../db.js';
@@ -106,23 +110,28 @@ const tableName = ${tableName};
 const columns = ${json(columns)};
 const editableColumns = ${json(editableColumns)};
 const primaryKey = ${(0, naming_1.quoteJs)(primaryKey)};
+const primaryKeyProperty = ${(0, naming_1.quoteJs)(primaryKeyProperty)};
 
 function pickPayload(payload) {
   const data = {};
   for (const column of editableColumns) {
-    if (Object.prototype.hasOwnProperty.call(payload, column)) {
-      data[column] = payload[column];
+    if (Object.prototype.hasOwnProperty.call(payload, column.propertyName)) {
+      data[column.name] = payload[column.propertyName];
     }
   }
   return data;
 }
 
+function selectColumns() {
+  return columns.map((column) => \`\\\`\${column.name}\\\` AS \\\`\${column.propertyName}\\\`\`).join(', ');
+}
+
 export async function findAll() {
-  return query(\`SELECT \${columns.map((column) => \`\\\`\${column}\\\`\`).join(', ')} FROM \\\`\${tableName}\\\` ORDER BY \\\`\${primaryKey}\\\` DESC\`);
+  return query(\`SELECT \${selectColumns()} FROM \\\`\${tableName}\\\` ORDER BY \\\`\${primaryKey}\\\` DESC\`);
 }
 
 export async function findById(id) {
-  const rows = await query(\`SELECT \${columns.map((column) => \`\\\`\${column}\\\`\`).join(', ')} FROM \\\`\${tableName}\\\` WHERE \\\`\${primaryKey}\\\` = ? LIMIT 1\`, [id]);
+  const rows = await query(\`SELECT \${selectColumns()} FROM \\\`\${tableName}\\\` WHERE \\\`\${primaryKey}\\\` = ? LIMIT 1\`, [id]);
   return rows[0] || null;
 }
 
@@ -135,7 +144,7 @@ export async function create(payload) {
   const placeholders = keys.map(() => '?').join(', ');
   const sql = \`INSERT INTO \\\`\${tableName}\\\` (\${keys.map((key) => \`\\\`\${key}\\\`\`).join(', ')}) VALUES (\${placeholders})\`;
   const result = await query(sql, keys.map((key) => data[key]));
-  return findById(result.insertId);
+  return findById(result.insertId || data[primaryKey] || payload[primaryKeyProperty]);
 }
 
 export async function update(id, payload) {
@@ -162,6 +171,7 @@ const tableName = ${tableName};
 const columns = ${json(columns)};
 const editableColumns = ${json(editableColumns)};
 const primaryKey = ${(0, naming_1.quoteJs)(primaryKey)};
+const primaryKeyProperty = ${(0, naming_1.quoteJs)(primaryKeyProperty)};
 
 function q(identifier) {
   return '"' + identifier.replaceAll('"', '""') + '"';
@@ -170,19 +180,23 @@ function q(identifier) {
 function pickPayload(payload) {
   const data = {};
   for (const column of editableColumns) {
-    if (Object.prototype.hasOwnProperty.call(payload, column)) {
-      data[column] = payload[column];
+    if (Object.prototype.hasOwnProperty.call(payload, column.propertyName)) {
+      data[column.name] = payload[column.propertyName];
     }
   }
   return data;
 }
 
+function selectColumns() {
+  return columns.map((column) => \`\${q(column.name)} AS \${q(column.propertyName)}\`).join(', ');
+}
+
 export async function findAll() {
-  return query(\`SELECT \${columns.map(q).join(', ')} FROM \${q(tableName)} ORDER BY \${q(primaryKey)} DESC\`);
+  return query(\`SELECT \${selectColumns()} FROM \${q(tableName)} ORDER BY \${q(primaryKey)} DESC\`);
 }
 
 export async function findById(id) {
-  const rows = await query(\`SELECT \${columns.map(q).join(', ')} FROM \${q(tableName)} WHERE \${q(primaryKey)} = $1 LIMIT 1\`, [id]);
+  const rows = await query(\`SELECT \${selectColumns()} FROM \${q(tableName)} WHERE \${q(primaryKey)} = $1 LIMIT 1\`, [id]);
   return rows[0] || null;
 }
 
@@ -193,7 +207,7 @@ export async function create(payload) {
     throw new Error('Aucune donnee a enregistrer.');
   }
   const placeholders = keys.map((_, index) => \`$\${index + 1}\`).join(', ');
-  const sql = \`INSERT INTO \${q(tableName)} (\${keys.map(q).join(', ')}) VALUES (\${placeholders}) RETURNING \${columns.map(q).join(', ')}\`;
+  const sql = \`INSERT INTO \${q(tableName)} (\${keys.map(q).join(', ')}) VALUES (\${placeholders}) RETURNING \${selectColumns()}\`;
   const rows = await query(sql, keys.map((key) => data[key]));
   return rows[0];
 }
@@ -205,7 +219,7 @@ export async function update(id, payload) {
     return findById(id);
   }
   const assignments = keys.map((key, index) => \`\${q(key)} = $\${index + 1}\`).join(', ');
-  const sql = \`UPDATE \${q(tableName)} SET \${assignments} WHERE \${q(primaryKey)} = $\${keys.length + 1} RETURNING \${columns.map(q).join(', ')}\`;
+  const sql = \`UPDATE \${q(tableName)} SET \${assignments} WHERE \${q(primaryKey)} = $\${keys.length + 1} RETURNING \${selectColumns()}\`;
   const rows = await query(sql, [...keys.map((key) => data[key]), id]);
   return rows[0] || null;
 }

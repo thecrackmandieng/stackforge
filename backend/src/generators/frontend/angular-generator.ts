@@ -437,18 +437,18 @@ function loginPageHtml(schema: NormalizedSchema): string {
     <span class="login-hint">Connexion par mot de passe demo ou code OTP envoye par email/SMS.</span>
     <label>
       Login
-      <input [(ngModel)]="login" autocomplete="username">
+      <input name="login" [(ngModel)]="login" autocomplete="username">
     </label>
     <label>
       Mot de passe
-      <input type="password" [(ngModel)]="password" autocomplete="current-password">
+      <input name="password" type="password" [(ngModel)]="password" autocomplete="current-password">
     </label>
     <div class="otp-separator">
       <span>ou connexion OTP</span>
     </div>
     <label>
       Email ou telephone
-      <input [(ngModel)]="otpRecipient" autocomplete="email">
+      <input name="otpRecipient" [(ngModel)]="otpRecipient" autocomplete="email">
     </label>
     <button type="button" class="secondary" (click)="requestOtp()" [disabled]="otpSending || !otpRecipient">
       {{ otpSending ? 'Envoi...' : 'Envoyer le code OTP' }}
@@ -458,7 +458,7 @@ function loginPageHtml(schema: NormalizedSchema): string {
     }
     <label>
       Code OTP
-      <input inputmode="numeric" maxlength="6" [(ngModel)]="otpCode" autocomplete="one-time-code">
+      <input name="otpCode" inputmode="numeric" maxlength="6" [(ngModel)]="otpCode" autocomplete="one-time-code">
     </label>
     @if (error) {
       <strong class="error">{{ error }}</strong>
@@ -815,7 +815,7 @@ function pageHtml(table: NormalizedTable): string {
       (column) => `
       <label>
         ${column.label}
-        <input type="${column.htmlInputType}" [(ngModel)]="form['${column.propertyName}']">
+        <input name="${column.propertyName}" type="${column.htmlInputType}" [(ngModel)]="form['${column.propertyName}']">
       </label>`
     )
     .join('\n');
