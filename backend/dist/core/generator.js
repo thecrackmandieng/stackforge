@@ -380,17 +380,18 @@ async function listGeneratedProjects() {
         const zipPath = path_1.default.join(jobPath, zipFile);
         const zipStat = await (0, promises_1.stat)(zipPath).catch(() => jobStat);
         const manifest = await readGeneratedProjectManifest(jobId).catch(() => undefined);
+        if (!manifest) {
+            return null;
+        }
         const summary = {
             jobId,
             projectName,
             outputPath,
             zipPath,
             downloadUrl: `/download/${jobId}/${zipFile}`,
-            createdAt: manifest?.createdAt || zipStat.mtime.toISOString()
+            createdAt: manifest.createdAt || zipStat.mtime.toISOString(),
+            manifest
         };
-        if (manifest) {
-            summary.manifest = manifest;
-        }
         return summary;
     }));
     return projects
@@ -401,8 +402,7 @@ async function readGeneratedProjectManifest(jobId) {
     const safeJobId = jobId.replace(/[^a-zA-Z0-9-]/g, '');
     const jobPath = path_1.default.join(GENERATED_ROOT, safeJobId);
     const entries = await (0, promises_1.readdir)(jobPath);
-    const zipFile = entries.find((entry) => entry.endsWith('.zip'));
-    const projectName = zipFile?.replace(/\.zip$/, '') || entries.find((entry) => entry !== zipFile);
+    const projectName = entries.find((entry) => !entry.endsWith('.zip'));
     if (!projectName) {
         throw new Error('Projet genere introuvable.');
     }
