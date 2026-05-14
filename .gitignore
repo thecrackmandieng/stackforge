@@ -1,0 +1,26 @@
+.DS_Store
+
+# Environment files
+.env
+*.env
+!.env.example
+
+# Dependencies
+node_modules/
+backend/node_modules/
+studio/node_modules/
+
+# Build outputs
+dist/
+backend/dist/
+studio/dist/
+studio/.angular/
+
+# Generated projects and archives
+backend/generated/
+
+# Logs and caches
+npm-debug.log*
+yarn-error.log*
+coverage/
+.cache/

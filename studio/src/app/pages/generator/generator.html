@@ -1,0 +1,452 @@
+<ion-content>
+  <section class="generator">
+    <nav class="site-nav" aria-label="Navigation principale">
+      <a class="brand" href="#studio">
+        <span>SF</span>
+        StackForge Studio
+      </a>
+
+      <div class="nav-links">
+        <a href="#workflow">Workflow</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#generator">Generateur</a>
+      </div>
+
+      <a class="nav-action" href="#generator">Lancer</a>
+    </nav>
+
+    <header id="studio" class="topbar">
+      <div class="hero-copy">
+        <p class="eyebrow">StackForge Studio</p>
+        <h1>Genere une application full-stack propre a partir de ta base.</h1>
+        <p class="subtitle">
+          Transforme un schema JSON ou une connexion MySQL/PostgreSQL en backend Node.js,
+          API CRUD, frontend Angular/Ionic, documentation et archive prete a livrer.
+        </p>
+
+        <div class="hero-cta">
+          <a class="primary-cta" href="#generator">Creer un projet</a>
+          <a class="secondary-cta" href="stackforge-video.html" target="_blank">
+            <ion-icon name="play-circle-outline" aria-hidden="true"></ion-icon>
+            Voir la demo
+          </a>
+        </div>
+
+        <div class="hero-metrics">
+          <div>
+            <strong>CRUD</strong>
+            <span>Routes et controleurs</span>
+          </div>
+          <div>
+            <strong>Ionic</strong>
+            <span>Interface mobile-first</span>
+          </div>
+          <div>
+            <strong>Zip</strong>
+            <span>Projet exportable</span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="hero-side" aria-label="Apercu de generation">
+        <div class="top-actions">
+          <a class="video-link" href="stackforge-video.html" target="_blank">
+            <ion-icon name="play-circle-outline" aria-hidden="true"></ion-icon>
+            Presentation
+          </a>
+          <div class="status-pill">
+            <span></span>
+            API generateur: localhost:3001
+          </div>
+        </div>
+
+        <div class="product-preview">
+          <div class="preview-toolbar">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="preview-line active">
+            <strong>Schema</strong>
+            <i></i>
+            <span>Lecture tables, colonnes et relations</span>
+          </div>
+          <div class="preview-line">
+            <strong>Backend</strong>
+            <i></i>
+            <span>Services, routes, controllers, docs</span>
+          </div>
+          <div class="preview-line">
+            <strong>Frontend</strong>
+            <i></i>
+            <span>Ecrans, formulaires, navigation</span>
+          </div>
+          <div class="preview-terminal">
+            <span>stackforge generate --source schema</span>
+            <span>backend + frontend + README</span>
+            <span>archive zip disponible</span>
+          </div>
+        </div>
+      </aside>
+    </header>
+
+    <section id="workflow" class="workflow" aria-label="Etapes de generation">
+      <div>
+        <span>01</span>
+        <strong>Source</strong>
+        <p>Colle un schema JSON ou connecte une base existante.</p>
+      </div>
+      <div>
+        <span>02</span>
+        <strong>Analyse</strong>
+        <p>StackForge detecte les tables, champs, types et endpoints.</p>
+      </div>
+      <div>
+        <span>03</span>
+        <strong>Construction</strong>
+        <p>Le backend, le frontend et la documentation sont crees ensemble.</p>
+      </div>
+      <div>
+        <span>04</span>
+        <strong>Export</strong>
+        <p>Recupere le dossier genere ou telecharge l'archive zip.</p>
+      </div>
+    </section>
+
+    <section id="architecture" class="domain-showcase" aria-label="Architecture generee">
+      <div class="domain-copy">
+        <div>
+          <p class="section-kicker">Architecture</p>
+          <h2>Une chaine claire, de la donnee a l'interface.</h2>
+        </div>
+        <p>
+          L'objectif est simple : partir de ta structure metier et obtenir une application lisible,
+          modulaire et facile a reprendre.
+        </p>
+      </div>
+
+      <div class="architecture-map">
+        <div class="architecture-node">
+          <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
+          <strong>Base de donnees</strong>
+          <span>MySQL, PostgreSQL ou schema JSON.</span>
+        </div>
+        <div class="architecture-line" aria-hidden="true"></div>
+        <div class="architecture-node api-node">
+          <ion-icon name="server-outline" aria-hidden="true"></ion-icon>
+          <strong>API Node.js</strong>
+          <span>Routes CRUD, services, documentation.</span>
+        </div>
+        <div class="architecture-line" aria-hidden="true"></div>
+        <div class="architecture-node ui-node">
+          <ion-icon name="code-slash-outline" aria-hidden="true"></ion-icon>
+          <strong>Frontend</strong>
+          <span>Angular/Ionic, ecrans et formulaires.</span>
+        </div>
+      </div>
+
+      <div class="deliverables-grid">
+        <div>
+          <span>Backend</span>
+          <strong>Express + API CRUD</strong>
+          <p>Structure serveur prete pour connecter tes donnees.</p>
+        </div>
+        <div>
+          <span>Frontend</span>
+          <strong>Angular ou Ionic</strong>
+          <p>Interface moderne avec pages et composants.</p>
+        </div>
+        <div>
+          <span>Docs</span>
+          <strong>README + endpoints</strong>
+          <p>Instructions et routes generees pour reprendre vite.</p>
+        </div>
+        <div>
+          <span>Export</span>
+          <strong>Archive zip</strong>
+          <p>Livrable telechargeable depuis le studio.</p>
+        </div>
+      </div>
+    </section>
+
+    <main id="generator" class="workspace">
+      <section class="panel setup-panel">
+        <div class="panel-header">
+          <div class="setup-heading">
+            <p class="section-kicker">Projet</p>
+            <h2>Source de generation</h2>
+            <span>Configure l'entree, choisis le rendu, puis lance la construction.</span>
+          </div>
+          <div class="setup-badge" aria-hidden="true">
+            <ion-icon name="flash-outline"></ion-icon>
+          </div>
+        </div>
+
+        <div class="source-strip" aria-label="Contenu genere">
+          <span>Schema</span>
+          <span>API CRUD</span>
+          <span>Interface</span>
+          <span>Zip</span>
+        </div>
+
+        <div class="field-block">
+          <label for="projectName">Nom du projet</label>
+          <ion-input id="projectName" class="control" [(ngModel)]="projectName" placeholder="Ex: Diengforge"></ion-input>
+        </div>
+
+        <div class="frontend-picker" aria-label="Choix du frontend">
+          <button
+            type="button"
+            [class.active]="frontendFramework === 'ionic'"
+            (click)="frontendFramework = 'ionic'">
+            <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
+            <span>Mobile-first</span>
+            <strong>Ionic Angular</strong>
+            <small>Navigation, composants Ionic et experience responsive.</small>
+          </button>
+          <button
+            type="button"
+            [class.active]="frontendFramework === 'angular'"
+            (click)="frontendFramework = 'angular'">
+            <ion-icon name="code-slash-outline" aria-hidden="true"></ion-icon>
+            <span>Web app</span>
+            <strong>Angular</strong>
+            <small>Application web structuree avec pages et services.</small>
+          </button>
+          <button
+            type="button"
+            [class.active]="frontendFramework === 'react'"
+            (click)="frontendFramework = 'react'">
+            <ion-icon name="code-slash-outline" aria-hidden="true"></ion-icon>
+            <span>Frontend JS</span>
+            <strong>React JS</strong>
+            <small>Application Vite React avec vues CRUD et client API.</small>
+          </button>
+          <button
+            type="button"
+            [class.active]="frontendFramework === 'react-native'"
+            (click)="frontendFramework = 'react-native'">
+            <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
+            <span>Mobile native</span>
+            <strong>React Native</strong>
+            <small>Application Expo mobile avec ecrans CRUD reutilisables.</small>
+          </button>
+        </div>
+
+        <ion-segment class="mode-switch" [(ngModel)]="mode">
+          <ion-segment-button value="schema">
+            <ion-icon name="code-slash-outline" aria-hidden="true"></ion-icon>
+            Schema JSON
+          </ion-segment-button>
+          <ion-segment-button value="database">
+            <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
+            Connexion DB
+          </ion-segment-button>
+        </ion-segment>
+
+        @if (mode === 'schema') {
+          <div class="field-block">
+            <label for="schemaJson">Schema de la base</label>
+            <ion-textarea
+              id="schemaJson"
+              class="json-editor"
+              autoGrow="true"
+              rows="18"
+              [(ngModel)]="schemaJson">
+            </ion-textarea>
+          </div>
+        } @else {
+          <ion-list class="connection-grid">
+            <div class="field-block">
+              <label>Type</label>
+              <ion-select class="control" [(ngModel)]="provider" interface="popover">
+                <ion-select-option value="mysql">MySQL</ion-select-option>
+                <ion-select-option value="postgres">PostgreSQL</ion-select-option>
+              </ion-select>
+            </div>
+
+            <div class="field-block">
+              <label for="dbHost">Host</label>
+              <ion-input id="dbHost" class="control" [(ngModel)]="host"></ion-input>
+            </div>
+
+            <div class="field-block">
+              <label for="dbPort">Port</label>
+              <ion-input id="dbPort" class="control" type="number" [(ngModel)]="port"></ion-input>
+            </div>
+
+            <div class="field-block">
+              <label for="dbUser">Utilisateur</label>
+              <ion-input id="dbUser" class="control" [(ngModel)]="user"></ion-input>
+            </div>
+
+            <div class="field-block">
+              <label for="dbPassword">Mot de passe</label>
+              <ion-input id="dbPassword" class="control" type="password" [(ngModel)]="password"></ion-input>
+            </div>
+
+            <div class="field-block">
+              <label for="dbName">Base de donnees</label>
+              <ion-input id="dbName" class="control" [(ngModel)]="database"></ion-input>
+            </div>
+          </ion-list>
+        }
+
+        <ion-button class="generate-button" expand="block" size="large" (click)="generate()" [disabled]="loading || !projectName">
+          @if (loading) {
+            <ion-spinner name="crescent"></ion-spinner>
+            <span>Generation en cours</span>
+          } @else {
+            <ion-icon name="server-outline" aria-hidden="true"></ion-icon>
+            Generer backend + frontend
+          }
+        </ion-button>
+      </section>
+
+      <aside class="panel summary-panel">
+        <div class="panel-header">
+          <div>
+            <p class="section-kicker">Sortie</p>
+            <h2>Projet genere</h2>
+          </div>
+          <ion-icon name="server-outline" aria-hidden="true"></ion-icon>
+        </div>
+
+        @if (!result && !error) {
+          <div class="empty-state">
+            <ion-icon name="code-slash-outline" aria-hidden="true"></ion-icon>
+            <h3>Tout est pret</h3>
+            <p>La generation creera un dossier complet avec backend, frontend, README et archive zip.</p>
+          </div>
+        }
+
+        @if (message && result) {
+          <div class="result success-card">
+            <ion-text color="success">
+              <p>{{ message }}</p>
+            </ion-text>
+            <dl>
+              <div>
+                <dt>Projet</dt>
+                <dd>{{ result.projectName }}</dd>
+              </div>
+              <div>
+                <dt>Dossier</dt>
+                <dd>{{ result.outputPath }}</dd>
+              </div>
+              <div>
+                <dt>Tables</dt>
+                <dd>{{ result.tables.join(', ') }}</dd>
+              </div>
+            </dl>
+            <ion-button class="download-button" [href]="result.downloadUrl" target="_blank" fill="solid">
+              <ion-icon name="cloud-download-outline" aria-hidden="true"></ion-icon>
+              Telecharger le zip
+            </ion-button>
+          </div>
+        }
+
+        @if (error) {
+          <div class="error-panel">
+            <strong>Generation impossible</strong>
+            <ion-text color="danger">
+              <p>{{ error }}</p>
+            </ion-text>
+          </div>
+        }
+
+        @if (generations.length) {
+          <div class="history">
+            <div class="history-head">
+              <div>
+                <h3>Dernieres generations</h3>
+                <p>Selectionne un projet pour inspecter son contenu.</p>
+              </div>
+              <span>{{ generations.length }} projets</span>
+            </div>
+
+            @for (item of generations.slice(0, 5); track item.jobId) {
+              <div class="history-item" [class.active]="selectedProject?.jobId === item.jobId">
+                <button class="project-card-button" type="button" (click)="selectGeneration(item)" [attr.aria-label]="'Voir le projet ' + item.projectName">
+                  <span class="project-avatar">{{ item.projectName.slice(0, 2) }}</span>
+                  <span class="project-main">
+                    <strong>{{ item.projectName }}</strong>
+                    <span class="project-path">{{ item.outputPath }}</span>
+                    <span class="project-meta">
+                      <span>{{ item.createdAt | date: 'short' }}</span>
+                      <span>Zip disponible</span>
+                    </span>
+                  </span>
+                </button>
+                <a class="zip-action" [href]="item.downloadUrl" target="_blank" [attr.aria-label]="'Telecharger ' + item.projectName">
+                  <ion-icon name="cloud-download-outline" aria-hidden="true"></ion-icon>
+                </a>
+              </div>
+            }
+          </div>
+        }
+
+        @if (selectedProject && selectedManifest) {
+          <div class="project-detail">
+            <h3>Detail du projet</h3>
+
+            <div class="inspector-grid">
+              <div>
+                <span>Ecrans</span>
+                <strong>{{ selectedManifest.screens.length }}</strong>
+              </div>
+              <div>
+                <span>Composants</span>
+                <strong>{{ selectedManifest.components.length }}</strong>
+              </div>
+              <div>
+                <span>Endpoints</span>
+                <strong>{{ selectedManifest.endpoints.length }}</strong>
+              </div>
+            </div>
+
+            <div class="demo-box">
+              <strong>Acces demo</strong>
+              <span>Login: {{ selectedManifest.demo.login }}</span>
+              <span>Mot de passe: {{ selectedManifest.demo.password }}</span>
+              <span>Route: {{ selectedManifest.demo.startRoute }}</span>
+            </div>
+
+            <h4>Ecrans crees</h4>
+            <div class="mini-list">
+              @for (screen of selectedManifest.screens; track screen.route) {
+                <div>
+                  <strong>{{ screen.name }}</strong>
+                  <span>{{ screen.route }} - {{ screen.path }}</span>
+                  <p>{{ screen.description }}</p>
+                </div>
+              }
+            </div>
+
+            <h4>Composants crees</h4>
+            <div class="mini-list">
+              @for (component of selectedManifest.components; track component.path) {
+                <div>
+                  <strong>{{ component.name }} <small>{{ component.type }}</small></strong>
+                  <span>{{ component.path }}</span>
+                  <p>{{ component.role }}</p>
+                </div>
+              }
+            </div>
+
+            <h4>Documentation backend</h4>
+            <div class="endpoint-list">
+              @for (endpoint of selectedManifest.endpoints; track endpoint.method + endpoint.path) {
+                <div>
+                  <code>{{ endpoint.method }}</code>
+                  <span>{{ endpoint.path }}</span>
+                  <p>{{ endpoint.description }}</p>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </aside>
+    </main>
+  </section>
+</ion-content>
