@@ -44,6 +44,24 @@ function normalizeColumn(column) {
         htmlInputType: toHtmlInputType(column)
     };
 }
+function dedupeColumns(columns) {
+    const seen = new Map();
+    for (const column of columns) {
+        const key = column.propertyName;
+        const existing = seen.get(key);
+        if (!existing) {
+            seen.set(key, column);
+            continue;
+        }
+        seen.set(key, {
+            ...existing,
+            primaryKey: Boolean(existing.primaryKey || column.primaryKey),
+            autoIncrement: Boolean(existing.autoIncrement || column.autoIncrement),
+            nullable: existing.nullable && column.nullable
+        });
+    }
+    return Array.from(seen.values());
+}
 function fallbackPrimaryKey(columns) {
     const explicit = columns.find((column) => column.primaryKey);
     if (explicit) {
@@ -63,7 +81,7 @@ function normalizeSchema(projectName, schema) {
         throw new Error('Aucune table detectee dans la base de donnees.');
     }
     const tables = schema.tables.map((table) => {
-        const columns = table.columns.map(normalizeColumn);
+        const columns = dedupeColumns(table.columns.map(normalizeColumn));
         const primaryKey = fallbackPrimaryKey(columns);
         const columnsWithPk = columns.map((column) => column.name === primaryKey.name ? { ...column, primaryKey: true } : column);
         const editableColumns = columnsWithPk.filter((column) => !column.primaryKey && !column.autoIncrement);

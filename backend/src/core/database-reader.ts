@@ -157,15 +157,20 @@ async function readPostgresSchema(config: DatabaseConnectionConfig): Promise<Dat
         c.data_type,
         c.is_nullable,
         c.column_default,
-        CASE WHEN tc.constraint_type = 'PRIMARY KEY' THEN true ELSE false END AS is_primary
+        EXISTS (
+          SELECT 1
+          FROM information_schema.table_constraints tc
+          JOIN information_schema.key_column_usage kcu
+            ON tc.constraint_schema = kcu.constraint_schema
+            AND tc.constraint_name = kcu.constraint_name
+            AND tc.table_schema = kcu.table_schema
+            AND tc.table_name = kcu.table_name
+          WHERE tc.constraint_type = 'PRIMARY KEY'
+            AND tc.table_schema = c.table_schema
+            AND tc.table_name = c.table_name
+            AND kcu.column_name = c.column_name
+        ) AS is_primary
       FROM information_schema.columns c
-      LEFT JOIN information_schema.key_column_usage kcu
-        ON c.table_schema = kcu.table_schema
-        AND c.table_name = kcu.table_name
-        AND c.column_name = kcu.column_name
-      LEFT JOIN information_schema.table_constraints tc
-        ON kcu.constraint_schema = tc.constraint_schema
-        AND kcu.constraint_name = tc.constraint_name
       WHERE c.table_schema = 'public'
       ORDER BY c.table_name, c.ordinal_position
       `
