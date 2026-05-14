@@ -1,0 +1,46 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Categorie</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  @if (error) {
+    <p class="error">{{ error }}</p>
+  }
+
+  <form (ngSubmit)="save()" class="editor">
+    <h2>{{ selected ? 'Modifier' : 'Creer' }}</h2>
+    <ion-item>
+        <ion-label position="stacked">Nom Categorie</ion-label>
+        <ion-input type="text" name="nom_categorie" [(ngModel)]="form['nom_categorie']"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Description</ion-label>
+        <ion-input type="text" name="description" [(ngModel)]="form['description']"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Created At</ion-label>
+        <ion-input type="text" name="created_at" [(ngModel)]="form['created_at']"></ion-input>
+      </ion-item>
+    <ion-buttons>
+      <ion-button type="submit" fill="solid" [disabled]="loading">{{ selected ? 'Mettre a jour' : 'Ajouter' }}</ion-button>
+      <ion-button type="button" fill="clear" (click)="cancel()">Annuler</ion-button>
+    </ion-buttons>
+  </form>
+
+  <ion-list>
+    @for (item of items; track item.idCategorie) {
+      <ion-item>
+        <ion-label>
+          <p><strong>Id Categorie:</strong> {{ item.idCategorie }}</p>
+        <p><strong>Nom Categorie:</strong> {{ item.nomCategorie }}</p>
+        <p><strong>Description:</strong> {{ item.description }}</p>
+        <p><strong>Created At:</strong> {{ item.createdAt }}</p>
+        </ion-label>
+        <ion-button fill="clear" (click)="edit(item)">Editer</ion-button>
+        <ion-button color="danger" fill="clear" (click)="delete(item)">Supprimer</ion-button>
+      </ion-item>
+    }
+  </ion-list>
+</ion-content>

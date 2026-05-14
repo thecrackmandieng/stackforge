@@ -1,0 +1,50 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Utilisateur</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  @if (error) {
+    <p class="error">{{ error }}</p>
+  }
+
+  <form (ngSubmit)="save()" class="editor">
+    <h2>{{ selected ? 'Modifier' : 'Creer' }}</h2>
+    <ion-item>
+        <ion-label position="stacked">Nom</ion-label>
+        <ion-input type="text" name="nom" [(ngModel)]="form['nom']"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Email</ion-label>
+        <ion-input type="email" name="email" [(ngModel)]="form['email']"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Password</ion-label>
+        <ion-input type="password" name="password" [(ngModel)]="form['password']"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Created At</ion-label>
+        <ion-input type="text" name="created_at" [(ngModel)]="form['created_at']"></ion-input>
+      </ion-item>
+    <ion-buttons>
+      <ion-button type="submit" fill="solid" [disabled]="loading">{{ selected ? 'Mettre a jour' : 'Ajouter' }}</ion-button>
+      <ion-button type="button" fill="clear" (click)="cancel()">Annuler</ion-button>
+    </ion-buttons>
+  </form>
+
+  <ion-list>
+    @for (item of items; track item.idUtilisateur) {
+      <ion-item>
+        <ion-label>
+          <p><strong>Id Utilisateur:</strong> {{ item.idUtilisateur }}</p>
+        <p><strong>Nom:</strong> {{ item.nom }}</p>
+        <p><strong>Email:</strong> {{ item.email }}</p>
+        <p><strong>Password:</strong> {{ item.password }}</p>
+        </ion-label>
+        <ion-button fill="clear" (click)="edit(item)">Editer</ion-button>
+        <ion-button color="danger" fill="clear" (click)="delete(item)">Supprimer</ion-button>
+      </ion-item>
+    }
+  </ion-list>
+</ion-content>

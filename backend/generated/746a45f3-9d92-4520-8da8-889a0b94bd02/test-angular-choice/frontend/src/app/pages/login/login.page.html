@@ -1,0 +1,18 @@
+<section class="login-layout">
+  <div class="login-card">
+    <p>Acces demo</p>
+    <h1>Test Angular Choice</h1>
+    <label>
+      Login
+      <input [(ngModel)]="login" autocomplete="username">
+    </label>
+    <label>
+      Mot de passe
+      <input type="password" [(ngModel)]="password" autocomplete="current-password">
+    </label>
+    @if (error) {
+      <strong class="error">{{ error }}</strong>
+    }
+    <button type="button" (click)="submit()">Entrer</button>
+  </div>
+</section>

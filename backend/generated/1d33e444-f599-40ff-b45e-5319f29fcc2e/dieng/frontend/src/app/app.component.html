@@ -1,0 +1,20 @@
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <span>SF</span>
+      <div>
+        <strong>{{ appTitle }}</strong>
+        <small>Application Angular generee</small>
+      </div>
+    </div>
+    <nav aria-label="Navigation">
+      @for (link of links; track link.path) {
+        <a [routerLink]="link.path" routerLinkActive="active">{{ link.label }}</a>
+      }
+    </nav>
+  </aside>
+
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

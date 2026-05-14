@@ -1,0 +1,14 @@
+<section class="page-hero">
+  <p>Demo</p>
+  <h1>Ecrans generes</h1>
+  <span>Ouvre chaque module pour tester les listes, formulaires et actions CRUD.</span>
+</section>
+
+<section class="screen-grid">
+  @for (screen of screens; track screen.route) {
+    <a [routerLink]="screen.route">
+      <strong>{{ screen.name }}</strong>
+      <span>{{ screen.description }}</span>
+    </a>
+  }
+</section>

@@ -1,0 +1,28 @@
+.utilisateur-view {
+  display: grid;
+  gap: 18px;
+}
+
+.utilisateur-view .page-hero {
+  border-left: 4px solid #0f766e;
+}
+
+.utilisateur-view .form-actions {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+}
+
+.utilisateur-view .secondary {
+  background: #e0f2fe;
+  color: #075985;
+}
+
+.utilisateur-view .danger {
+  background: #dc2626;
+}
+
+.utilisateur-view .loading {
+  color: #64748b;
+  font-weight: 800;
+}

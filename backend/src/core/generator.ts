@@ -1,0 +1,466 @@
+import { createWriteStream } from 'fs';
+import { mkdir, readFile, readdir, stat } from 'fs/promises';
+import path from 'path';
+import { randomUUID } from 'crypto';
+import { readDatabaseSchema } from './database-reader';
+import { resetDirectory, writeTextFile } from './file-writer';
+import { normalizeSchema } from './schema-analyzer';
+import {
+  GeneratedEndpointDoc,
+  GeneratedProjectManifest,
+  GeneratedProjectSummary,
+  FrontendFramework,
+  GenerateRequest,
+  GenerationResult,
+  NormalizedSchema
+} from './types';
+import { sanitizePackageName } from './naming';
+import { generateExpressBackend } from '../generators/backend/express-generator';
+import { generateAngularFrontend } from '../generators/frontend/angular-generator';
+import { generateIonicFrontend } from '../generators/frontend/ionic-generator';
+import { generateReactFrontend } from '../generators/frontend/react-generator';
+import { generateReactNativeFrontend } from '../generators/frontend/react-native-generator';
+
+const archiver = require('archiver');
+
+const GENERATED_ROOT = path.resolve(process.cwd(), 'generated');
+const MANIFEST_FILE = 'stackforge.manifest.json';
+
+function frontendLabel(framework: FrontendFramework): string {
+  const labels: Record<FrontendFramework, string> = {
+    ionic: 'Angular/Ionic',
+    angular: 'Angular Web',
+    react: 'React',
+    'react-native': 'React Native'
+  };
+
+  return labels[framework];
+}
+
+function frontendFileExtension(framework: FrontendFramework): string {
+  return framework === 'react' || framework === 'react-native' ? 'tsx' : 'ts';
+}
+
+function frontendAppPath(framework: FrontendFramework): string {
+  if (framework === 'react') {
+    return 'frontend/src/App.tsx';
+  }
+
+  if (framework === 'react-native') {
+    return 'frontend/App.tsx';
+  }
+
+  return 'frontend/src/app/app.component.ts';
+}
+
+function frontendLoginPath(framework: FrontendFramework): string {
+  if (framework === 'react' || framework === 'react-native') {
+    return frontendAppPath(framework);
+  }
+
+  return 'frontend/src/app/pages/login/login.page.ts';
+}
+
+function frontendDemoPath(framework: FrontendFramework): string {
+  if (framework === 'react' || framework === 'react-native') {
+    return frontendAppPath(framework);
+  }
+
+  return 'frontend/src/app/pages/demo/demo.page.ts';
+}
+
+function frontendScreenPath(framework: FrontendFramework, tableEntityName: string): string {
+  if (framework === 'react') {
+    return `frontend/src/features/${tableEntityName}/${tableEntityName}.view.tsx`;
+  }
+
+  if (framework === 'react-native') {
+    return 'frontend/src/screens/TableScreen.tsx';
+  }
+
+  return `frontend/src/app/pages/${tableEntityName}/${tableEntityName}.page.ts`;
+}
+
+function frontendServicePath(framework: FrontendFramework, tableEntityName: string): string {
+  if (framework === 'react') {
+    return `frontend/src/features/${tableEntityName}/${tableEntityName}.service.ts`;
+  }
+
+  if (framework === 'react-native') {
+    return 'frontend/src/api.ts';
+  }
+
+  return `frontend/src/app/pages/${tableEntityName}/${tableEntityName}.service.ts`;
+}
+
+function buildFrontendComponents(schema: NormalizedSchema, framework: FrontendFramework) {
+  if (framework === 'react') {
+    return schema.tables.flatMap((table) => [
+      {
+        name: `${table.className}Model`,
+        type: 'frontend' as const,
+        path: `frontend/src/features/${table.entityName}/${table.entityName}.model.ts`,
+        role: `Modele TypeScript React pour la table ${table.name}.`
+      },
+      {
+        name: `${table.className}Service`,
+        type: 'frontend' as const,
+        path: `frontend/src/features/${table.entityName}/${table.entityName}.service.ts`,
+        role: `Service API React pour ${table.name}.`
+      },
+      {
+        name: `${table.className}Controller`,
+        type: 'frontend' as const,
+        path: `frontend/src/features/${table.entityName}/${table.entityName}.controller.ts`,
+        role: `Controller React qui pilote le CRUD de ${table.name}.`
+      },
+      {
+        name: `${table.className}View`,
+        type: 'frontend' as const,
+        path: `frontend/src/features/${table.entityName}/${table.entityName}.view.tsx`,
+        role: `Vue TSX React separee pour ${table.name}.`
+      },
+      {
+        name: `${table.className}Styles`,
+        type: 'frontend' as const,
+        path: `frontend/src/features/${table.entityName}/${table.entityName}.view.css`,
+        role: `Styles CSS dedies a la vue ${table.name}.`
+      }
+    ]);
+  }
+
+  return schema.tables.flatMap((table) => [
+    {
+      name: `${table.className}Page`,
+      type: 'frontend' as const,
+      path: frontendScreenPath(framework, table.entityName),
+      role: `Ecran ${frontendLabel(framework)} de liste, creation, modification et suppression pour ${table.name}.`
+    },
+    {
+      name: `${table.className}Service`,
+      type: 'frontend' as const,
+      path: frontendServicePath(framework, table.entityName),
+      role: `Client API frontend pour ${table.name}.`
+    }
+  ]);
+}
+
+function rootReadme(projectName: string, manifest: GeneratedProjectManifest, framework: FrontendFramework): string {
+  const endpointRows = manifest.endpoints
+    .map((endpoint) => `| ${endpoint.method} | \`${endpoint.path}\` | ${endpoint.description} |`)
+    .join('\n');
+  const screenRows = manifest.screens
+    .map((screen) => `| ${screen.name} | \`${screen.route}\` | ${screen.description} |`)
+    .join('\n');
+
+  return `
+# ${projectName}
+
+Projet genere automatiquement par StackForge Studio.
+
+## Backend
+
+\`\`\`bash
+cd backend
+cp .env.example .env
+npm install
+npm run dev
+\`\`\`
+
+## Frontend ${frontendLabel(framework)}
+
+\`\`\`bash
+cd frontend
+npm install
+npm start
+\`\`\`
+
+Le backend expose les routes CRUD sous \`http://localhost:3000/api\`.
+
+## Demo frontend
+
+- Login: \`${manifest.demo.login}\`
+- Mot de passe: \`${manifest.demo.password}\`
+- OTP: demande un code par email ou SMS depuis la page de connexion.
+- Page de demarrage: \`${manifest.demo.startRoute}\`
+
+## OTP email/SMS
+
+Le backend expose:
+
+- \`POST /api/auth/request-otp\` avec \`{ "recipient": "email@site.com" }\` ou \`{ "recipient": "+221..." }\`
+- \`POST /api/auth/verify-otp\` avec \`{ "recipient": "...", "code": "123456" }\`
+
+Configure \`.env\` pour envoyer les codes:
+
+- Email SMTP: \`SMTP_HOST\`, \`SMTP_PORT\`, \`SMTP_USER\`, \`SMTP_PASSWORD\`, \`SMTP_FROM\`
+- SMS Twilio: \`TWILIO_ACCOUNT_SID\`, \`TWILIO_AUTH_TOKEN\`, \`TWILIO_FROM\`
+
+Si aucun fournisseur n'est configure, le code OTP est affiche dans les logs backend en mode developpement.
+
+## Ecrans frontend
+
+| Ecran | Route | Description |
+| --- | --- | --- |
+${screenRows}
+
+## Documentation backend
+
+| Methode | Endpoint | Description |
+| --- | --- | --- |
+${endpointRows}
+`;
+}
+
+function buildEndpointDocs(schema: NormalizedSchema): GeneratedEndpointDoc[] {
+  const endpoints: GeneratedEndpointDoc[] = [
+    {
+      method: 'GET',
+      path: '/api/health',
+      description: 'Verifier que le backend genere fonctionne.'
+    },
+    {
+      method: 'POST',
+      path: '/api/auth/request-otp',
+      description: 'Generer et envoyer un code OTP par email ou SMS.'
+    },
+    {
+      method: 'POST',
+      path: '/api/auth/verify-otp',
+      description: 'Verifier un code OTP envoye a un email ou telephone.'
+    }
+  ];
+
+  for (const table of schema.tables) {
+    endpoints.push(
+      {
+        method: 'GET',
+        path: `/api/${table.routePath}`,
+        description: `Lister les donnees de ${table.name}.`
+      },
+      {
+        method: 'GET',
+        path: `/api/${table.routePath}/:id`,
+        description: `Lire un element ${table.name} par identifiant.`
+      },
+      {
+        method: 'POST',
+        path: `/api/${table.routePath}`,
+        description: `Creer un element ${table.name}.`
+      },
+      {
+        method: 'PUT',
+        path: `/api/${table.routePath}/:id`,
+        description: `Modifier un element ${table.name}.`
+      },
+      {
+        method: 'DELETE',
+        path: `/api/${table.routePath}/:id`,
+        description: `Supprimer un element ${table.name}.`
+      }
+    );
+  }
+
+  return endpoints;
+}
+
+function buildManifest(schema: NormalizedSchema, framework: FrontendFramework): GeneratedProjectManifest {
+  const frontendName = frontendLabel(framework);
+  const backendComponents = schema.tables.flatMap((table) => [
+    {
+      name: `${table.className}Controller`,
+      type: 'backend' as const,
+      path: `backend/src/controllers/${table.entityName}.controller.js`,
+      role: `Controle les requetes HTTP pour ${table.name}.`
+    },
+    {
+      name: `${table.className}Service`,
+      type: 'backend' as const,
+      path: `backend/src/services/${table.entityName}.service.js`,
+      role: `Execute les operations CRUD SQL pour ${table.name}.`
+    }
+  ]);
+  const frontendComponents = buildFrontendComponents(schema, framework);
+
+  return {
+    projectName: schema.projectName,
+    createdAt: new Date().toISOString(),
+    demo: {
+      login: 'dieng.tech',
+      password: 'dieng123',
+      otpCode: 'email ou SMS',
+      startRoute: '/login'
+    },
+    components: [
+      {
+        name: 'LoginPage',
+        type: 'frontend',
+        path: frontendLoginPath(framework),
+        role: `Page de connexion demo ${frontendName} avec mot de passe dieng123 ou OTP email/SMS.`
+      },
+      {
+        name: 'DemoPage',
+        type: 'frontend',
+        path: frontendDemoPath(framework),
+        role: 'Ecran de visualisation de tous les ecrans generes.'
+      },
+      ...backendComponents,
+      ...frontendComponents
+    ],
+    screens: [
+      {
+        name: 'Connexion',
+        route: '/login',
+        path: frontendLoginPath(framework),
+        description: 'Connexion demo avec login dieng.tech, mot de passe dieng123 ou OTP envoye par email/SMS.'
+      },
+      {
+        name: 'Demo',
+        route: '/demo',
+        path: frontendDemoPath(framework),
+        description: 'Vue centrale pour ouvrir tous les ecrans generes.'
+      },
+      ...schema.tables.map((table) => ({
+        name: table.className,
+        route: `/${table.routePath}`,
+        path: frontendScreenPath(framework, table.entityName),
+        description: `Ecran CRUD genere pour la table ${table.name}.`
+      }))
+    ],
+    endpoints: buildEndpointDocs(schema)
+  };
+}
+
+async function zipDirectory(sourceDir: string, zipPath: string): Promise<void> {
+  await mkdir(path.dirname(zipPath), { recursive: true });
+
+  await new Promise<void>((resolve, reject) => {
+    const output = createWriteStream(zipPath);
+    const archive = archiver('zip', { zlib: { level: 9 } });
+
+    output.on('close', () => resolve());
+    archive.on('error', (error: Error) => reject(error));
+    archive.pipe(output);
+    archive.directory(sourceDir, false);
+    archive.finalize();
+  });
+}
+
+export async function generateProject(request: GenerateRequest): Promise<GenerationResult> {
+  if (!request.name || !request.name.trim()) {
+    throw new Error('Le nom du projet est obligatoire.');
+  }
+
+  const jobId = randomUUID();
+  const projectName = sanitizePackageName(request.name);
+  const outputPath = path.join(GENERATED_ROOT, jobId, projectName);
+  const zipPath = path.join(GENERATED_ROOT, jobId, `${projectName}.zip`);
+  const frontendFramework = request.frontend?.framework || 'ionic';
+
+  if (!['ionic', 'angular', 'react', 'react-native'].includes(frontendFramework)) {
+    throw new Error('Le type de frontend doit etre ionic, angular, react ou react-native.');
+  }
+
+  const rawSchema = await readDatabaseSchema(request);
+  const schema = normalizeSchema(projectName, rawSchema);
+  const manifest = buildManifest(schema, frontendFramework);
+
+  await resetDirectory(outputPath);
+  await generateExpressBackend(schema, outputPath);
+  if (frontendFramework === 'angular') {
+    await generateAngularFrontend(schema, outputPath);
+  } else if (frontendFramework === 'react') {
+    await generateReactFrontend(schema, outputPath);
+  } else if (frontendFramework === 'react-native') {
+    await generateReactNativeFrontend(schema, outputPath);
+  } else {
+    await generateIonicFrontend(schema, outputPath);
+  }
+  await writeTextFile(path.join(outputPath, MANIFEST_FILE), JSON.stringify(manifest, null, 2));
+  await writeTextFile(path.join(outputPath, 'README.md'), rootReadme(schema.appTitle, manifest, frontendFramework));
+  await zipDirectory(outputPath, zipPath);
+
+  return {
+    jobId,
+    projectName,
+    outputPath,
+    zipPath,
+    downloadUrl: `/download/${jobId}/${projectName}.zip`,
+    tables: schema.tables.map((table) => table.name),
+    manifest
+  };
+}
+
+export function getZipPath(jobId: string, fileName: string): string {
+  const safeJobId = jobId.replace(/[^a-zA-Z0-9-]/g, '');
+  const safeFileName = fileName.replace(/[^a-zA-Z0-9-.]/g, '');
+  return path.join(GENERATED_ROOT, safeJobId, safeFileName);
+}
+
+export async function listGeneratedProjects(): Promise<GeneratedProjectSummary[]> {
+  let jobIds: string[];
+
+  try {
+    jobIds = await readdir(GENERATED_ROOT);
+  } catch {
+    return [];
+  }
+
+  const projects = await Promise.all(
+    jobIds.map(async (jobId) => {
+      const jobPath = path.join(GENERATED_ROOT, jobId);
+      const jobStat = await stat(jobPath).catch(() => null);
+      if (!jobStat?.isDirectory()) {
+        return null;
+      }
+
+      const entries = await readdir(jobPath).catch(() => []);
+      const zipFile = entries.find((entry) => entry.endsWith('.zip'));
+      const projectName = zipFile?.replace(/\.zip$/, '') || entries.find((entry) => entry !== zipFile);
+
+      if (!zipFile || !projectName) {
+        return null;
+      }
+
+      const outputPath = path.join(jobPath, projectName);
+      const zipPath = path.join(jobPath, zipFile);
+      const zipStat = await stat(zipPath).catch(() => jobStat);
+      const manifest = await readGeneratedProjectManifest(jobId).catch(() => undefined);
+
+      const summary: GeneratedProjectSummary = {
+        jobId,
+        projectName,
+        outputPath,
+        zipPath,
+        downloadUrl: `/download/${jobId}/${zipFile}`,
+        createdAt: manifest?.createdAt || zipStat.mtime.toISOString()
+      };
+
+      if (manifest) {
+        summary.manifest = manifest;
+      }
+
+      return summary;
+    })
+  );
+
+  return projects
+    .filter((project): project is GeneratedProjectSummary => Boolean(project))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export async function readGeneratedProjectManifest(jobId: string): Promise<GeneratedProjectManifest> {
+  const safeJobId = jobId.replace(/[^a-zA-Z0-9-]/g, '');
+  const jobPath = path.join(GENERATED_ROOT, safeJobId);
+  const entries = await readdir(jobPath);
+  const zipFile = entries.find((entry) => entry.endsWith('.zip'));
+  const projectName = zipFile?.replace(/\.zip$/, '') || entries.find((entry) => entry !== zipFile);
+
+  if (!projectName) {
+    throw new Error('Projet genere introuvable.');
+  }
+
+  const manifestPath = path.join(jobPath, projectName, MANIFEST_FILE);
+  const content = await readFile(manifestPath, 'utf8');
+  return JSON.parse(content);
+}

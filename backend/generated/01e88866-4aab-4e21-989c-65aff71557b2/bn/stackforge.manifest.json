@@ -1,0 +1,155 @@
+{
+  "projectName": "bn",
+  "createdAt": "2026-05-01T18:37:20.445Z",
+  "demo": {
+    "login": "dieng.tech",
+    "password": "dieng123",
+    "otpCode": "123456",
+    "startRoute": "/login"
+  },
+  "components": [
+    {
+      "name": "LoginPage",
+      "type": "frontend",
+      "path": "frontend/src/app/pages/login/login.page.ts",
+      "role": "Page de connexion demo Angular Web avec mot de passe dieng123 ou OTP 123456."
+    },
+    {
+      "name": "DemoPage",
+      "type": "frontend",
+      "path": "frontend/src/app/pages/demo/demo.page.ts",
+      "role": "Ecran de visualisation de tous les ecrans generes."
+    },
+    {
+      "name": "CategorieController",
+      "type": "backend",
+      "path": "backend/src/controllers/categorie.controller.js",
+      "role": "Controle les requetes HTTP pour categorie."
+    },
+    {
+      "name": "CategorieService",
+      "type": "backend",
+      "path": "backend/src/services/categorie.service.js",
+      "role": "Execute les operations CRUD SQL pour categorie."
+    },
+    {
+      "name": "CategoriePage",
+      "type": "frontend",
+      "path": "frontend/src/app/pages/categorie/categorie.page.ts",
+      "role": "Ecran Angular Web de liste, creation, modification et suppression pour categorie."
+    },
+    {
+      "name": "CategorieService",
+      "type": "frontend",
+      "path": "frontend/src/app/pages/categorie/categorie.service.ts",
+      "role": "Client API frontend pour categorie."
+    },
+    {
+      "name": "UtilisateurController",
+      "type": "backend",
+      "path": "backend/src/controllers/utilisateur.controller.js",
+      "role": "Controle les requetes HTTP pour utilisateur."
+    },
+    {
+      "name": "UtilisateurService",
+      "type": "backend",
+      "path": "backend/src/services/utilisateur.service.js",
+      "role": "Execute les operations CRUD SQL pour utilisateur."
+    },
+    {
+      "name": "UtilisateurPage",
+      "type": "frontend",
+      "path": "frontend/src/app/pages/utilisateur/utilisateur.page.ts",
+      "role": "Ecran Angular Web de liste, creation, modification et suppression pour utilisateur."
+    },
+    {
+      "name": "UtilisateurService",
+      "type": "frontend",
+      "path": "frontend/src/app/pages/utilisateur/utilisateur.service.ts",
+      "role": "Client API frontend pour utilisateur."
+    }
+  ],
+  "screens": [
+    {
+      "name": "Connexion",
+      "route": "/login",
+      "path": "frontend/src/app/pages/login/login.page.ts",
+      "description": "Connexion demo avec login dieng.tech, mot de passe dieng123 ou OTP 123456."
+    },
+    {
+      "name": "Demo",
+      "route": "/demo",
+      "path": "frontend/src/app/pages/demo/demo.page.ts",
+      "description": "Vue centrale pour ouvrir tous les ecrans generes."
+    },
+    {
+      "name": "Categorie",
+      "route": "/categorie",
+      "path": "frontend/src/app/pages/categorie/categorie.page.ts",
+      "description": "Ecran CRUD genere pour la table categorie."
+    },
+    {
+      "name": "Utilisateur",
+      "route": "/utilisateur",
+      "path": "frontend/src/app/pages/utilisateur/utilisateur.page.ts",
+      "description": "Ecran CRUD genere pour la table utilisateur."
+    }
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "description": "Verifier que le backend genere fonctionne."
+    },
+    {
+      "method": "GET",
+      "path": "/api/categorie",
+      "description": "Lister les donnees de categorie."
+    },
+    {
+      "method": "GET",
+      "path": "/api/categorie/:id",
+      "description": "Lire un element categorie par identifiant."
+    },
+    {
+      "method": "POST",
+      "path": "/api/categorie",
+      "description": "Creer un element categorie."
+    },
+    {
+      "method": "PUT",
+      "path": "/api/categorie/:id",
+      "description": "Modifier un element categorie."
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/categorie/:id",
+      "description": "Supprimer un element categorie."
+    },
+    {
+      "method": "GET",
+      "path": "/api/utilisateur",
+      "description": "Lister les donnees de utilisateur."
+    },
+    {
+      "method": "GET",
+      "path": "/api/utilisateur/:id",
+      "description": "Lire un element utilisateur par identifiant."
+    },
+    {
+      "method": "POST",
+      "path": "/api/utilisateur",
+      "description": "Creer un element utilisateur."
+    },
+    {
+      "method": "PUT",
+      "path": "/api/utilisateur/:id",
+      "description": "Modifier un element utilisateur."
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/utilisateur/:id",
+      "description": "Supprimer un element utilisateur."
+    }
+  ]
+}

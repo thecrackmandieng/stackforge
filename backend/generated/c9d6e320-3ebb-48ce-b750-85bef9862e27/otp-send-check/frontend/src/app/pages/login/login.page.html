@@ -1,0 +1,36 @@
+<section class="login-layout">
+  <div class="login-card">
+    <p>Acces demo</p>
+    <h1>Otp Send Check</h1>
+    <span class="login-hint">Connexion par mot de passe demo ou code OTP envoye par email/SMS.</span>
+    <label>
+      Login
+      <input [(ngModel)]="login" autocomplete="username">
+    </label>
+    <label>
+      Mot de passe
+      <input type="password" [(ngModel)]="password" autocomplete="current-password">
+    </label>
+    <div class="otp-separator">
+      <span>ou connexion OTP</span>
+    </div>
+    <label>
+      Email ou telephone
+      <input [(ngModel)]="otpRecipient" autocomplete="email">
+    </label>
+    <button type="button" class="secondary" (click)="requestOtp()" [disabled]="otpSending || !otpRecipient">
+      {{ otpSending ? 'Envoi...' : 'Envoyer le code OTP' }}
+    </button>
+    @if (otpMessage) {
+      <strong class="success">{{ otpMessage }}</strong>
+    }
+    <label>
+      Code OTP
+      <input inputmode="numeric" maxlength="6" [(ngModel)]="otpCode" autocomplete="one-time-code">
+    </label>
+    @if (error) {
+      <strong class="error">{{ error }}</strong>
+    }
+    <button type="button" (click)="submit()">Entrer</button>
+  </div>
+</section>

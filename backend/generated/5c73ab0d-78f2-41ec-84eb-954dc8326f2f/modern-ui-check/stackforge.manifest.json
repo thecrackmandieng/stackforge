@@ -1,0 +1,99 @@
+{
+  "projectName": "modern-ui-check",
+  "createdAt": "2026-05-01T12:21:13.713Z",
+  "demo": {
+    "login": "dieng.tech",
+    "password": "dieng123",
+    "startRoute": "/login"
+  },
+  "components": [
+    {
+      "name": "LoginPage",
+      "type": "frontend",
+      "path": "frontend/src/app/pages/login/login.page.ts",
+      "role": "Page de connexion demo avec les identifiants dieng.tech / dieng123."
+    },
+    {
+      "name": "DemoPage",
+      "type": "frontend",
+      "path": "frontend/src/app/pages/demo/demo.page.ts",
+      "role": "Ecran de visualisation de tous les ecrans generes."
+    },
+    {
+      "name": "CustomersController",
+      "type": "backend",
+      "path": "backend/src/controllers/customers.controller.js",
+      "role": "Controle les requetes HTTP pour customers."
+    },
+    {
+      "name": "CustomersService",
+      "type": "backend",
+      "path": "backend/src/services/customers.service.js",
+      "role": "Execute les operations CRUD SQL pour customers."
+    },
+    {
+      "name": "CustomersPage",
+      "type": "frontend",
+      "path": "frontend/src/app/pages/customers/customers.page.ts",
+      "role": "Ecran Ionic de liste, creation, modification et suppression pour customers."
+    },
+    {
+      "name": "CustomersService",
+      "type": "frontend",
+      "path": "frontend/src/app/pages/customers/customers.service.ts",
+      "role": "Client API frontend pour customers."
+    }
+  ],
+  "screens": [
+    {
+      "name": "Connexion",
+      "route": "/login",
+      "path": "frontend/src/app/pages/login/login.page.ts",
+      "description": "Connexion demo avec login dieng.tech et mot de passe dieng123."
+    },
+    {
+      "name": "Demo",
+      "route": "/demo",
+      "path": "frontend/src/app/pages/demo/demo.page.ts",
+      "description": "Vue centrale pour ouvrir tous les ecrans generes."
+    },
+    {
+      "name": "Customers",
+      "route": "/customers",
+      "path": "frontend/src/app/pages/customers/customers.page.ts",
+      "description": "Ecran CRUD genere pour la table customers."
+    }
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "description": "Verifier que le backend genere fonctionne."
+    },
+    {
+      "method": "GET",
+      "path": "/api/customers",
+      "description": "Lister les donnees de customers."
+    },
+    {
+      "method": "GET",
+      "path": "/api/customers/:id",
+      "description": "Lire un element customers par identifiant."
+    },
+    {
+      "method": "POST",
+      "path": "/api/customers",
+      "description": "Creer un element customers."
+    },
+    {
+      "method": "PUT",
+      "path": "/api/customers/:id",
+      "description": "Modifier un element customers."
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/customers/:id",
+      "description": "Supprimer un element customers."
+    }
+  ]
+}

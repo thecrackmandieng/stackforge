@@ -1,0 +1,82 @@
+<section class="page-title">
+  <p>Module CRUD</p>
+  <h1>Utilisateur</h1>
+  <span>Gestion de la table utilisateur</span>
+</section>
+
+<section class="editor">
+  <div>
+    <h2>{{ editingId === null ? 'Nouvel element' : 'Modifier element' }}</h2>
+    <p>Renseigne les champs puis enregistre.</p>
+  </div>
+  <form (ngSubmit)="save()">
+
+      <label>
+        Nom
+        <input type="text" [(ngModel)]="form['nom']">
+      </label>
+
+      <label>
+        Email
+        <input type="email" [(ngModel)]="form['email']">
+      </label>
+
+      <label>
+        Password
+        <input type="password" [(ngModel)]="form['password']">
+      </label>
+
+      <label>
+        Created At
+        <input type="datetime-local" [(ngModel)]="form['createdAt']">
+      </label>
+    <div class="form-actions">
+      <button type="submit">{{ editingId === null ? 'Creer' : 'Mettre a jour' }}</button>
+      <button type="button" class="ghost" (click)="cancel()">Annuler</button>
+    </div>
+  </form>
+</section>
+
+@if (error) {
+  <div class="error">{{ error }}</div>
+}
+
+<section class="table-card">
+  <div class="table-head">
+    <h2>Donnees</h2>
+    <button type="button" (click)="load()">Actualiser</button>
+  </div>
+  @if (loading) {
+    <p>Chargement...</p>
+  } @else {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+          <th>Id Utilisateur</th>
+          <th>Nom</th>
+          <th>Email</th>
+          <th>Password</th>
+          <th>Created At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items; track item.idUtilisateur) {
+            <tr>
+          <td>{{ item.idUtilisateur }}</td>
+          <td>{{ item.nom }}</td>
+          <td>{{ item.email }}</td>
+          <td>{{ item.password }}</td>
+          <td>{{ item.createdAt }}</td>
+              <td>
+                <button type="button" (click)="edit(item)">Editer</button>
+                <button type="button" class="danger" (click)="remove(item)">Supprimer</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

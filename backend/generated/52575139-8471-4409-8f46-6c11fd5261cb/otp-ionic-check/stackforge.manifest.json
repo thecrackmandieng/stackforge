@@ -1,0 +1,100 @@
+{
+  "projectName": "otp-ionic-check",
+  "createdAt": "2026-05-01T18:00:21.900Z",
+  "demo": {
+    "login": "dieng.tech",
+    "password": "dieng123",
+    "otpCode": "123456",
+    "startRoute": "/login"
+  },
+  "components": [
+    {
+      "name": "LoginPage",
+      "type": "frontend",
+      "path": "frontend/src/app/pages/login/login.page.ts",
+      "role": "Page de connexion demo Angular/Ionic avec mot de passe dieng123 ou OTP 123456."
+    },
+    {
+      "name": "DemoPage",
+      "type": "frontend",
+      "path": "frontend/src/app/pages/demo/demo.page.ts",
+      "role": "Ecran de visualisation de tous les ecrans generes."
+    },
+    {
+      "name": "ClientsController",
+      "type": "backend",
+      "path": "backend/src/controllers/clients.controller.js",
+      "role": "Controle les requetes HTTP pour clients."
+    },
+    {
+      "name": "ClientsService",
+      "type": "backend",
+      "path": "backend/src/services/clients.service.js",
+      "role": "Execute les operations CRUD SQL pour clients."
+    },
+    {
+      "name": "ClientsPage",
+      "type": "frontend",
+      "path": "frontend/src/app/pages/clients/clients.page.ts",
+      "role": "Ecran Angular/Ionic de liste, creation, modification et suppression pour clients."
+    },
+    {
+      "name": "ClientsService",
+      "type": "frontend",
+      "path": "frontend/src/app/pages/clients/clients.service.ts",
+      "role": "Client API frontend pour clients."
+    }
+  ],
+  "screens": [
+    {
+      "name": "Connexion",
+      "route": "/login",
+      "path": "frontend/src/app/pages/login/login.page.ts",
+      "description": "Connexion demo avec login dieng.tech, mot de passe dieng123 ou OTP 123456."
+    },
+    {
+      "name": "Demo",
+      "route": "/demo",
+      "path": "frontend/src/app/pages/demo/demo.page.ts",
+      "description": "Vue centrale pour ouvrir tous les ecrans generes."
+    },
+    {
+      "name": "Clients",
+      "route": "/clients",
+      "path": "frontend/src/app/pages/clients/clients.page.ts",
+      "description": "Ecran CRUD genere pour la table clients."
+    }
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "description": "Verifier que le backend genere fonctionne."
+    },
+    {
+      "method": "GET",
+      "path": "/api/clients",
+      "description": "Lister les donnees de clients."
+    },
+    {
+      "method": "GET",
+      "path": "/api/clients/:id",
+      "description": "Lire un element clients par identifiant."
+    },
+    {
+      "method": "POST",
+      "path": "/api/clients",
+      "description": "Creer un element clients."
+    },
+    {
+      "method": "PUT",
+      "path": "/api/clients/:id",
+      "description": "Modifier un element clients."
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/clients/:id",
+      "description": "Supprimer un element clients."
+    }
+  ]
+}

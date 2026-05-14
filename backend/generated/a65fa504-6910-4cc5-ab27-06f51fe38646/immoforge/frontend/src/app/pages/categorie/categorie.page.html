@@ -1,0 +1,97 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Categorie</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <main class="page-shell">
+    <section class="page-hero">
+      <div>
+        <p>categorie</p>
+        <h1>Categorie</h1>
+      </div>
+      <button type="button" (click)="cancel()">Nouveau</button>
+    </section>
+
+    @if (error) {
+      <div class="alert">{{ error }}</div>
+    }
+
+    <section class="content-grid">
+      <form (ngSubmit)="save()" class="panel editor">
+        <div class="panel-title">
+          <div>
+            <span>{{ selected ? 'Modification' : 'Creation' }}</span>
+            <h2>{{ selected ? 'Mettre a jour' : 'Nouvel element' }}</h2>
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
+        <label for="nom_categorie">Nom Categorie</label>
+        <ion-input id="nom_categorie" type="text" name="nom_categorie" [(ngModel)]="form['nom_categorie']"></ion-input>
+      </div>
+      <div class="field">
+        <label for="description">Description</label>
+        <ion-input id="description" type="text" name="description" [(ngModel)]="form['description']"></ion-input>
+      </div>
+      <div class="field">
+        <label for="created_at">Created At</label>
+        <ion-input id="created_at" type="datetime-local" name="created_at" [(ngModel)]="form['created_at']"></ion-input>
+      </div>
+        </div>
+
+        <ion-buttons class="actions">
+          <ion-button type="submit" fill="solid" [disabled]="loading">{{ selected ? 'Enregistrer' : 'Ajouter' }}</ion-button>
+          <ion-button type="button" fill="clear" (click)="cancel()">Reinitialiser</ion-button>
+        </ion-buttons>
+      </form>
+
+      <section class="panel list-panel">
+        <div class="panel-title">
+          <div>
+            <span>{{ items.length }} element(s)</span>
+            <h2>Donnees</h2>
+          </div>
+          <ion-button fill="clear" size="small" (click)="load()">Rafraichir</ion-button>
+        </div>
+
+        @if (!items.length && !loading) {
+          <div class="empty">Aucune donnee pour le moment.</div>
+        }
+
+        <ion-list>
+          @for (item of items; track item.idCategorie) {
+            <ion-item class="data-card">
+              <ion-label>
+                <div class="record-grid">
+                  <div>
+            <span>Id Categorie</span>
+            <strong>{{ item.idCategorie }}</strong>
+          </div>
+        <div>
+            <span>Nom Categorie</span>
+            <strong>{{ item.nomCategorie }}</strong>
+          </div>
+        <div>
+            <span>Description</span>
+            <strong>{{ item.description }}</strong>
+          </div>
+        <div>
+            <span>Created At</span>
+            <strong>{{ item.createdAt }}</strong>
+          </div>
+                </div>
+              </ion-label>
+              <div class="row-actions">
+                <ion-button fill="outline" size="small" (click)="edit(item)">Editer</ion-button>
+                <ion-button color="danger" fill="clear" size="small" (click)="delete(item)">Supprimer</ion-button>
+              </div>
+            </ion-item>
+          }
+        </ion-list>
+      </section>
+    </section>
+  </main>
+</ion-content>
