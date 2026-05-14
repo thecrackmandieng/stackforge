@@ -734,7 +734,7 @@ function pageTs(table: NormalizedTable): string {
 
   return `
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ${table.className} } from './${table.entityName}.model';
 import { ${table.className}Service } from './${table.entityName}.service';
@@ -752,52 +752,125 @@ export class ${table.className}Page implements OnInit {
   editingId: string | number | null = null;
   loading = false;
   error = '';
+  formOpen = false;
+  confirmOpen = false;
+  successOpen = false;
+  successMessage = '';
+  pendingDelete: ${table.className} | null = null;
 
-  constructor(private service: ${table.className}Service) {}
+  constructor(
+    private service: ${table.className}Service,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     void this.load();
   }
 
+  private refresh(): void {
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
+  }
+
   async load(): Promise<void> {
     this.loading = true;
     this.error = '';
+    this.refresh();
     try {
       this.items = await this.service.list();
     } catch (error) {
       this.error = error instanceof Error ? error.message : 'Chargement impossible.';
     } finally {
       this.loading = false;
+      this.refresh();
     }
+  }
+
+  openCreate(): void {
+    this.editingId = null;
+    this.form = this.emptyForm();
+    this.error = '';
+    this.formOpen = true;
+    this.refresh();
   }
 
   edit(item: ${table.className}): void {
     this.editingId = item.${primary} as string | number;
     this.form = { ...item } as Record<string, string | number | boolean | null>;
+    this.error = '';
+    this.formOpen = true;
+    this.refresh();
   }
 
   cancel(): void {
     this.editingId = null;
     this.form = this.emptyForm();
+    this.formOpen = false;
+    this.refresh();
   }
 
   async save(): Promise<void> {
+    this.loading = true;
+    this.error = '';
+    this.refresh();
     try {
       if (this.editingId === null) {
         await this.service.create(this.form as Partial<${table.className}>);
+        this.successMessage = 'Element cree avec succes.';
       } else {
         await this.service.update(this.editingId, this.form as Partial<${table.className}>);
+        this.successMessage = 'Element modifie avec succes.';
       }
       this.cancel();
       await this.load();
+      this.successOpen = true;
     } catch (error) {
       this.error = error instanceof Error ? error.message : 'Enregistrement impossible.';
+    } finally {
+      this.loading = false;
+      this.refresh();
     }
   }
 
-  async remove(item: ${table.className}): Promise<void> {
-    await this.service.remove(item.${primary} as string | number);
-    await this.load();
+  askRemove(item: ${table.className}): void {
+    this.pendingDelete = item;
+    this.confirmOpen = true;
+    this.error = '';
+    this.refresh();
+  }
+
+  closeConfirm(): void {
+    this.pendingDelete = null;
+    this.confirmOpen = false;
+    this.refresh();
+  }
+
+  closeSuccess(): void {
+    this.successOpen = false;
+    this.successMessage = '';
+    this.refresh();
+  }
+
+  async confirmRemove(): Promise<void> {
+    if (!this.pendingDelete) {
+      return;
+    }
+
+    this.loading = true;
+    this.error = '';
+    this.refresh();
+    try {
+      await this.service.remove(this.pendingDelete.${primary} as string | number);
+      this.closeConfirm();
+      await this.load();
+      this.successMessage = 'Element supprime avec succes.';
+      this.successOpen = true;
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'Suppression impossible.';
+    } finally {
+      this.loading = false;
+      this.refresh();
+    }
   }
 
   private emptyForm(): Record<string, string | number | boolean | null> {
@@ -824,23 +897,12 @@ function pageHtml(table: NormalizedTable): string {
 
   return `
 <section class="page-title">
-  <p>Module CRUD</p>
-  <h1>${table.className}</h1>
-  <span>Gestion de la table ${table.name}</span>
-</section>
-
-<section class="editor">
   <div>
-    <h2>{{ editingId === null ? 'Nouvel element' : 'Modifier element' }}</h2>
-    <p>Renseigne les champs puis enregistre.</p>
+    <p>Module CRUD</p>
+    <h1>${table.className}</h1>
+    <span>Gestion de la table ${table.name}</span>
   </div>
-  <form (ngSubmit)="save()">
-${fields}
-    <div class="form-actions">
-      <button type="submit">{{ editingId === null ? 'Creer' : 'Mettre a jour' }}</button>
-      <button type="button" class="ghost" (click)="cancel()">Annuler</button>
-    </div>
-  </form>
+  <button type="button" (click)="openCreate()">Nouvel element</button>
 </section>
 
 @if (error) {
@@ -849,11 +911,14 @@ ${fields}
 
 <section class="table-card">
   <div class="table-head">
-    <h2>Donnees</h2>
-    <button type="button" (click)="load()">Actualiser</button>
+    <div>
+      <h2>Donnees</h2>
+      <p>{{ items.length }} element(s)</p>
+    </div>
+    <button type="button" class="ghost" (click)="load()">Actualiser</button>
   </div>
   @if (loading) {
-    <p>Chargement...</p>
+    <div class="loading-state">Chargement...</div>
   } @else {
     <div class="table-scroll">
       <table>
@@ -867,9 +932,9 @@ ${fields}
           @for (item of items; track item.${table.primaryKey.propertyName}) {
             <tr>
           ${cells}
-              <td>
+              <td class="row-actions">
                 <button type="button" (click)="edit(item)">Editer</button>
-                <button type="button" class="danger" (click)="remove(item)">Supprimer</button>
+                <button type="button" class="danger" (click)="askRemove(item)">Supprimer</button>
               </td>
             </tr>
           }
@@ -878,35 +943,88 @@ ${fields}
     </div>
   }
 </section>
+
+@if (formOpen) {
+  <div class="modal-backdrop" role="presentation" (click)="cancel()"></div>
+  <section class="modal-panel" role="dialog" aria-modal="true" aria-label="Formulaire ${table.className}">
+    <div class="modal-head">
+      <div>
+        <p>{{ editingId === null ? 'Creation' : 'Modification' }}</p>
+        <h2>{{ editingId === null ? 'Nouvel element' : 'Modifier element' }}</h2>
+      </div>
+      <button type="button" class="icon-button" aria-label="Fermer" (click)="cancel()">x</button>
+    </div>
+
+    <form (ngSubmit)="save()">
+${fields}
+      <div class="form-actions">
+        <button type="submit" [disabled]="loading">{{ editingId === null ? 'Creer' : 'Mettre a jour' }}</button>
+        <button type="button" class="ghost" (click)="cancel()">Annuler</button>
+      </div>
+    </form>
+  </section>
+}
+
+@if (confirmOpen) {
+  <div class="modal-backdrop" role="presentation" (click)="closeConfirm()"></div>
+  <section class="modal-panel small" role="dialog" aria-modal="true" aria-label="Confirmation suppression">
+    <div class="confirm-icon danger-icon">!</div>
+    <h2>Confirmer la suppression</h2>
+    <p>Cette action supprimera definitivement cet element.</p>
+    <div class="modal-actions">
+      <button type="button" class="ghost" (click)="closeConfirm()">Annuler</button>
+      <button type="button" class="danger" [disabled]="loading" (click)="confirmRemove()">Supprimer</button>
+    </div>
+  </section>
+}
+
+@if (successOpen) {
+  <div class="modal-backdrop success-backdrop" role="presentation" (click)="closeSuccess()"></div>
+  <section class="modal-panel small success-panel" role="dialog" aria-modal="true" aria-label="Succes">
+    <div class="confirm-icon success-icon">OK</div>
+    <h2>Operation reussie</h2>
+    <p>{{ successMessage }}</p>
+    <div class="modal-actions">
+      <button type="button" (click)="closeSuccess()">Continuer</button>
+    </div>
+  </section>
+}
 `;
 }
 
 function pageScss(): string {
   return `
 .page-title,
-.editor,
 .table-card,
 .error {
-  border: 1px solid #d9e3ef;
+  border: 1px solid #d8e2ef;
   border-radius: 8px;
   background: #ffffff;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
 }
 
 .page-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 16px;
   padding: 22px;
 }
 
 .page-title p,
 .page-title h1,
-.editor h2,
-.editor p,
-.table-head h2 {
+.table-head h2,
+.table-head p,
+.modal-head p,
+.modal-head h2,
+.modal-panel h2,
+.modal-panel p {
   margin: 0;
 }
 
 .page-title p {
-  color: #0f766e;
+  color: #2563eb;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -917,17 +1035,11 @@ function pageScss(): string {
 }
 
 .page-title span,
-.editor p {
+.table-head p,
+.modal-panel p {
   display: block;
   margin-top: 8px;
   color: #64748b;
-}
-
-.editor {
-  display: grid;
-  gap: 16px;
-  margin-bottom: 16px;
-  padding: 18px;
 }
 
 form {
@@ -946,15 +1058,23 @@ label {
 input {
   min-height: 44px;
   padding: 0 12px;
-  border: 1px solid #d9e3ef;
+  border: 1px solid #d8e2ef;
   border-radius: 8px;
   background: #f8fafc;
+  color: #0f172a;
+}
+
+input:focus {
+  border-color: #2563eb;
+  outline: 3px solid rgba(37, 99, 235, 0.16);
 }
 
 .form-actions {
+  grid-column: 1 / -1;
   display: flex;
-  align-items: end;
+  justify-content: flex-end;
   gap: 8px;
+  margin-top: 8px;
 }
 
 button {
@@ -962,14 +1082,25 @@ button {
   padding: 0 12px;
   border: 0;
   border-radius: 8px;
-  background: #0f766e;
+  background: #2563eb;
   color: #ffffff;
   font-weight: 900;
   cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 button.ghost {
-  background: #e2e8f0;
+  background: #eef2f7;
   color: #334155;
 }
 
@@ -981,7 +1112,10 @@ button.danger {
 .error {
   margin-bottom: 16px;
   padding: 14px;
+  border-color: #fecaca;
+  background: #fff1f2;
   color: #b91c1c;
+  font-weight: 800;
 }
 
 .table-card {
@@ -996,8 +1130,21 @@ button.danger {
   margin-bottom: 14px;
 }
 
+.loading-state {
+  display: grid;
+  min-height: 150px;
+  place-items: center;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #64748b;
+  font-weight: 900;
+}
+
 .table-scroll {
   overflow: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
 }
 
 table {
@@ -1010,13 +1157,133 @@ td {
   padding: 12px;
   border-bottom: 1px solid #e2e8f0;
   text-align: left;
+  white-space: nowrap;
 }
 
 th {
+  background: #f8fafc;
   color: #64748b;
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+}
+
+tbody tr:hover {
+  background: #f8fafc;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(15, 23, 42, 0.56);
+  backdrop-filter: blur(6px);
+}
+
+.success-backdrop {
+  background: rgba(15, 23, 42, 0.46);
+}
+
+.modal-panel {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 60;
+  width: min(720px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  transform: translate(-50%, -50%);
+  border: 1px solid #d8e2ef;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 22px;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28);
+}
+
+.modal-panel.small {
+  width: min(430px, calc(100vw - 32px));
+  text-align: center;
+}
+
+.modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.modal-head p {
+  color: #2563eb;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.modal-head h2 {
+  margin-top: 4px;
+}
+
+.icon-button {
+  width: 40px;
+  padding: 0;
+  background: #eef2f7;
+  color: #334155;
+}
+
+.confirm-icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 14px;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.danger-icon {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.success-icon {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.success-panel {
+  border-color: #bbf7d0;
+}
+
+@media (max-width: 640px) {
+  .page-title,
+  .table-head,
+  .form-actions,
+  .modal-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .row-actions {
+    flex-direction: column;
+  }
+
+  button {
+    width: 100%;
+  }
 }
 `;
 }
