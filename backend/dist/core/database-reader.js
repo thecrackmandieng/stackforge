@@ -34,6 +34,9 @@ function normalizeDatabaseError(error, provider) {
     if (code === 'ENOTFOUND') {
         return new Error(`Host introuvable pour ${provider}. Verifie l'adresse du serveur.`);
     }
+    if (message.toLowerCase().includes('ssl') || message.toLowerCase().includes('tls')) {
+        return new Error(`${provider} exige SSL/TLS. Active l'option SSL/TLS dans la connexion DB.`);
+    }
     if (code === 'ER_ACCESS_DENIED_ERROR' || code === '28P01') {
         return new Error(`Identifiants ${provider} invalides. Verifie l'utilisateur et le mot de passe.`);
     }
@@ -70,6 +73,7 @@ async function readMysqlSchema(config) {
             user: config.user,
             password: config.password,
             database: config.database,
+            ssl: config.ssl ? { rejectUnauthorized: false } : undefined,
             connectTimeout: CONNECTION_TIMEOUT_MS
         });
     }
@@ -113,6 +117,7 @@ async function readPostgresSchema(config) {
         user: config.user,
         password: config.password,
         database: config.database,
+        ssl: config.ssl ? { rejectUnauthorized: false } : undefined,
         connectionTimeoutMillis: CONNECTION_TIMEOUT_MS
     });
     try {

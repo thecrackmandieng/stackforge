@@ -27,6 +27,7 @@ export type DatabaseConnectionConfig = {
   user: string;
   password?: string;
   database: string;
+  ssl?: boolean;
 };
 
 export type GenerateRequest = {

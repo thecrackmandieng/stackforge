@@ -289,6 +289,14 @@
               <label for="dbName">Base de donnees</label>
               <ion-input id="dbName" class="control" [(ngModel)]="database"></ion-input>
             </div>
+
+            <label class="ssl-toggle" for="dbSsl">
+              <input id="dbSsl" type="checkbox" [(ngModel)]="ssl">
+              <span>
+                <strong>SSL/TLS</strong>
+                <small>Active cette option pour les bases cloud qui exigent une connexion securisee.</small>
+              </span>
+            </label>
           </ion-list>
         }
 

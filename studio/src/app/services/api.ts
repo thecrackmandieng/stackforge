@@ -15,6 +15,7 @@ export interface GeneratePayload {
     user: string;
     password?: string;
     database: string;
+    ssl?: boolean;
   };
   schema?: unknown;
 }

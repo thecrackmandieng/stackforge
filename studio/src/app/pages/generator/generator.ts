@@ -56,6 +56,7 @@ export class GeneratorComponent implements OnInit {
   user = 'root';
   password = '';
   database = 'jantcouvoir';
+  ssl = false;
   schemaJson = JSON.stringify(
     {
       provider: 'mysql',
@@ -169,7 +170,8 @@ export class GeneratorComponent implements OnInit {
                 port: Number(this.port),
                 user: this.user,
                 password: this.password,
-                database: this.database
+                database: this.database,
+                ssl: this.ssl
               }
             };
 
